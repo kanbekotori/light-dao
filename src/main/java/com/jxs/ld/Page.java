@@ -1,6 +1,5 @@
 package com.jxs.ld;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +18,7 @@ public interface Page<T> {
 
     int getTotal();
 
-    void setData(Collection<T> data);
+    void setData(List<T> data);
 
-    Collection<T> getData();
+    List<T> getData();
 }

@@ -298,7 +298,7 @@ public abstract class BaseDao<T> {
         return page;
     }
 
-    protected Collection<T> query(String sql, RowMapper<T> mapper, Object...values) {
+    protected List<T> query(String sql, RowMapper<T> mapper, Object...values) {
         return jdbc.query(sql ,mapper, values);
     }
 
@@ -310,7 +310,7 @@ public abstract class BaseDao<T> {
      * @param values
      * @return
      */
-    protected Collection<T> query(int max, String sql, RowMapper<T> mapper, Object...values) {
+    protected List<T> query(int max, String sql, RowMapper<T> mapper, Object...values) {
         return jdbc.query(new SqlBuilder().sql(sql).toSql(0, max), mapper, values);
     }
 
