@@ -14,7 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by jiangxingshang on 15/11/18.
+ * @author jiangxingshang
+ * @date 15/11/18
  */
 public class Beans {
 
@@ -43,7 +44,6 @@ public class Beans {
     /**
      * 获取bean类的属性（包含父类定义的属性），返回的列表只包含有效属性（拥有对应的getter方法）。
      * @param beanClass
-     * @return
      */
     private static List<Field> getFields(Class<?> beanClass) {
         return getFields(beanClass, new FieldFilter() {
@@ -61,7 +61,6 @@ public class Beans {
     /**
      * 获取属性对应的表字段名，属性或getter方法上需放置{@link Column}注解，否则会返回null。
      * @param f
-     * @return
      */
     private static String getColumnName(Field f) {
         String property = f.getName();
@@ -88,7 +87,6 @@ public class Beans {
      * 根据属性获取getter或setter
      * @param f
      * @param gs true表示getter，false表示setter
-     * @return
      */
     private static Method getMethod(Field f, boolean gs, Class<?>... parameterTypes) {
         String property = f.getName();
@@ -131,7 +129,6 @@ public class Beans {
     /**
      * 获取主键属性。
      * @param beanClass
-     * @return
      */
     public static Field getPrimaryField(Class<?> beanClass) {
         for(Field f : getFields(beanClass)) {
@@ -159,7 +156,6 @@ public class Beans {
     /**
      * 将key和value的位置对调。
      * @param map
-     * @return
      */
     public static Map<String, String> reverse(Map<String, String> map) {
         Map<String, String> r = new HashMap<>(map.size());
@@ -173,7 +169,6 @@ public class Beans {
     /**
      * 获取bean定义的表名，bean必须设置了{@linkplain com.jxs.ld.bean.TableName}注解。
      * @param beanClass
-     * @return
      */
     public static String getTable(Class<?> beanClass) {
         TableName tn = beanClass.getAnnotation(TableName.class);
@@ -187,7 +182,6 @@ public class Beans {
     /**
      * 获取bean定义的主键表字段名称。
      * @param beanClass
-     * @return
      * @see #getPrimaryColumn(Field)
      */
     public static String getPrimaryColumn(Class<?> beanClass) {
@@ -198,7 +192,6 @@ public class Beans {
     /**
      * 获取这个属性对应的字段
      * @param primary
-     * @return
      */
     public static String getPrimaryColumn(Field primary) {
         if (primary != null) {
@@ -215,7 +208,6 @@ public class Beans {
      * @param bean
      * @param includePrimaryKey true表示返回的map包含了主键，false表示不包含。
      * @param <E>
-     * @return
      */
     public static <E> Map<String, Object> getValueMap(E bean, boolean includePrimaryKey) {
         String primaryKey = getPrimaryColumn(bean.getClass());
@@ -267,7 +259,6 @@ public class Beans {
      * 获取属性对应的字段的类型。
      * @param beanClass
      * @param property
-     * @return
      */
     public static Class<?> getColumnType(Class<?> beanClass, String property) {
         Field f = getField(beanClass, property);

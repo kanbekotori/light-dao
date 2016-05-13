@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 /**
  * 当实体属性的值为Null时就分配一个默认值。
  * @see {@link Beans#initDefaultValue(Object)}
- * Created by jiangxingshang on 15/11/18.
+ * @author jiangxingshang
+ * @date 15/11/18
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})

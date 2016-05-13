@@ -7,7 +7,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by jiangxingshang on 15/11/18.
+ *
+ * @author jiangxingshang
+ * @date 15/11/18
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
@@ -17,13 +19,13 @@ public @interface Column {
 
     /**
      * 字段是否为主键。
-     * @return
+     * @return Boolean
      */
     boolean primaryKey() default false;
 
     /**
      * 设置属性对应的字段在数据库中应该是什么类型，从{@link java.sql.ResultSet}获取值时用到，如果不提供则不使用类型去获取值。
-     * @return
+     * @return Class
      */
     Class<?> columnType() default NullType.class;
 

@@ -8,7 +8,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by jiangxingshang on 15/11/18.
+ *
+ * @author jiangxingshang
+ * @date 15/11/18
  */
 public class SqlBuilder {
 
@@ -27,12 +29,16 @@ public class SqlBuilder {
         }
     };
 
+    /**
+     * <p>Constructor for SqlBuilder.</p>
+     */
     public SqlBuilder() {
 
     }
 
     /**
      * 构建一个带有属性字段映射的sql构造器，这个mapper会在转化sql时将带有@字符的单词替换成对应的字符串。
+     *
      * @param mapper key是@变量名（不带@字符），value是你要替换的值。
      */
     public SqlBuilder(Map<String, String> mapper) {
@@ -48,16 +54,22 @@ public class SqlBuilder {
      * new SqlBuilder().addVar("tableName", "t_user").sql("select * from @tableName").toSql();
      * //select * from t_user
      *
-     * @param key
-     * @param value
-     * @return
+     * @param key a {@link java.lang.String} object.
+     * @param value a {@link java.lang.String} object.
      * @see #SqlBuilder(Map)
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
      */
     public SqlBuilder addVar(String key, String value) {
         this.mapper.put(key, value);
         return this;
     }
 
+    /**
+     * <p>addVar</p>
+     *
+     * @param vars a {@link java.util.Map} object.
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
+     */
     public SqlBuilder addVar(Map<String, String>...vars) {
         for(Map<String, String> tmp : vars) {
             this.mapper.putAll(tmp);
@@ -65,6 +77,12 @@ public class SqlBuilder {
         return this;
     }
 
+    /**
+     * <p>sql</p>
+     *
+     * @param text a {@link java.lang.String} object.
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
+     */
     public SqlBuilder sql(String text) {
         builder.append((builder.length() > 0 ? " " : "") + text.trim());
         return this;
@@ -72,8 +90,9 @@ public class SqlBuilder {
 
     /**
      * 将表名追加到sql后面。
-     * @param table
-     * @return
+     *
+     * @param table a {@link java.lang.String} object.
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
      */
     public SqlBuilder table(String table) {
         return table(table, null);
@@ -81,9 +100,10 @@ public class SqlBuilder {
 
     /**
      * 将表名追加到sql后面，附加表别名
-     * @param table
+     *
+     * @param table a {@link java.lang.String} object.
      * @param alias 表别名
-     * @return
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
      */
     public SqlBuilder table(String table, String alias) {
         builder.append(" " + table.trim() + (StringUtils.isBlank(alias) ? "" : " " + alias));
@@ -92,9 +112,10 @@ public class SqlBuilder {
 
     /**
      * 将实体对应的表名追加到sql后面。
-     * @param beanClass
-     * @return
+     *
+     * @param beanClass a {@link java.lang.Class} object.
      * @see #table(Class, String)
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
      */
     public SqlBuilder table(Class<?> beanClass) {
         return table(beanClass, null);
@@ -102,14 +123,23 @@ public class SqlBuilder {
 
     /**
      * 将实体对应的表名追加到sql后面，从javabean中获取对应的表名，bean必须使用了{@link com.jxs.ld.bean.TableName}注解。
+     *
      * @param beanClass 任何带有{@link com.jxs.ld.bean.TableName}注解的类。
      * @param alias 表别名。
-     * @return
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
      */
     public SqlBuilder table(Class<?> beanClass, String alias) {
         return table(Beans.getTable(beanClass), alias);
     }
 
+    /**
+     * <p>where</p>
+     *
+     * @param text a {@link java.lang.String} object.
+     * @param use a boolean.
+     * @param values a {@link java.lang.Object} object.
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
+     */
     public SqlBuilder where(String text, boolean use, Object...values) {
         if(use) {
             value(values);
@@ -119,6 +149,14 @@ public class SqlBuilder {
         }
     }
 
+    /**
+     * <p>and</p>
+     *
+     * @param text a {@link java.lang.String} object.
+     * @param use a boolean.
+     * @param values a {@link java.lang.Object} object.
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
+     */
     public SqlBuilder and(String text, boolean use, Object...values) {
         if(use) {
             value(values);
@@ -128,6 +166,14 @@ public class SqlBuilder {
         }
     }
 
+    /**
+     * <p>or</p>
+     *
+     * @param text a {@link java.lang.String} object.
+     * @param use a boolean.
+     * @param values a {@link java.lang.Object} object.
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
+     */
     public SqlBuilder or(String text, boolean use, Object...values) {
         if(use) {
             value(values);
@@ -151,8 +197,9 @@ public class SqlBuilder {
      * 排序分段，如果field前带有一个"-"符号，表示desc排序，否则asc排序。
      * order("name", "@age", "-@age");
      * 第一个是表字段名，第二个是映射字段，第三个会降序排序。
+     *
      * @param fields 排序字段。
-     * @return
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
      */
     public SqlBuilder order(String...fields) {
         List<String> orders = new LinkedList<>();
@@ -177,8 +224,9 @@ public class SqlBuilder {
 
     /**
      * 添加参数到队列中。
-     * @param values
-     * @return
+     *
+     * @param values a {@link java.lang.Object} object.
+     * @return a {@link com.jxs.ld.sql.SqlBuilder} object.
      */
     public SqlBuilder value(Object...values) {
         for(Object o : values) {
@@ -187,14 +235,29 @@ public class SqlBuilder {
         return this;
     }
 
+    /**
+     * <p>Getter for the field <code>values</code>.</p>
+     *
+     * @return a {@link java.util.List} object.
+     */
     public List<Object> getValues() {
         return this.values;
     }
 
+    /**
+     * <p>getValueArray</p>
+     *
+     * @return an array of {@link java.lang.Object} objects.
+     */
     public Object[] getValueArray() {
         return this.values.toArray();
     }
 
+    /**
+     * <p>toSql</p>
+     *
+     * @return a {@link java.lang.String} object.
+     */
     public String toSql() {
         String str = builder.toString();
         Pattern p = Pattern.compile("(@[a-zA-Z_]+)");
@@ -215,9 +278,10 @@ public class SqlBuilder {
 
     /**
      * 返回分页查询SQL语句。
+     *
      * @param start 记录起始行，从0开始。
      * @param limit 返回多少条记录。
-     * @return
+     * @return a {@link java.lang.String} object.
      */
     public String toSql(int start, int limit) {
         return String.format("%s limit %d,%d", toSql(), start, limit);
@@ -225,7 +289,8 @@ public class SqlBuilder {
 
     /**
      * 返回查询总数的SQL语句。
-     * @return
+     *
+     * @return a {@link java.lang.String} object.
      */
     public String toSqlCount() {
         String sql = toSql();
@@ -239,8 +304,9 @@ public class SqlBuilder {
     }
 
     /**
+     * {@inheritDoc}
+     *
      * 返回原始sql组装语句（未格式化）。
-     * @return
      */
     @Override
     public String toString() {

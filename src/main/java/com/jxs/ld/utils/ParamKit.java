@@ -12,7 +12,8 @@ import java.util.*;
 
 /**
  * 键值参数工具类。
- * Created by jiangxingshang on 15/11/28.
+ * @author jiangxingshang
+ * @date 15/11/28
  */
 public class ParamKit {
 
@@ -49,7 +50,6 @@ public class ParamKit {
     /**
      * “1”或“true”都为true，其他为false。
      * @param name
-     * @return
      */
     public boolean asBool(String name) {
         String str = val(name);
@@ -139,7 +139,6 @@ public class ParamKit {
      * @param name
      * @param cls 只支持String， Integer，Float，Double类型。
      * @param <T>
-     * @return
      * @see #asArray(String, Class, String)
      */
     public <T> T[] asArray(String name, Class<T> cls) {
@@ -152,7 +151,6 @@ public class ParamKit {
      * @param cls 只支持String， Integer，Float，Double类型。
      * @param sper
      * @param <T>
-     * @return
      */
     public <T> Set<T> asSet(String name, Class<T> cls, String sper) {
         String tmp = asStr(name);
@@ -224,7 +222,6 @@ public class ParamKit {
     /**
      * 所有的参数是否存在，参数必须有值才被认为存在。
      * @param name
-     * @return
      */
     public boolean has(String...name) {
         for(String n : name) {

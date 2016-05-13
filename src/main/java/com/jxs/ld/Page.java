@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by jiangxingshang on 15/11/28.
+ * @author jiangxingshang
+ * @date 15/11/28
  */
 public interface Page<T> {
 

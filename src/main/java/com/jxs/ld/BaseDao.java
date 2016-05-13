@@ -22,7 +22,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
- * Created by jiangxingshang on 15/11/23.
+ * @author jiangxingshang
+ * @date 15/11/23
  */
 public abstract class BaseDao<T> {
 
