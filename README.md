@@ -137,7 +137,7 @@ public class User {
   private String username;
   @Column("pwd")
   private String password;
-  @Column(columnType = java.sql.Date)
+  @Column(columnType = java.sql.Date.class)
   private Date birthday;
   @IgnoreColumn
   private String leaderName;
