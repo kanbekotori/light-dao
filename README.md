@@ -137,7 +137,7 @@ public class User {
   private String username;
   @Column("pwd")
   private String password;
-  @Column(columnType = java.sql.Date)
+  @Column(columnType = java.sql.Date.class)
   private Date birthday;
   @IgnoreColumn
   private String leaderName;
@@ -153,6 +153,6 @@ public class User {
 
 在查询的时候，`BaseDao`会帮你将行数据填充到实体，从`ResultSet`获取值的时候使用的是`getObject(String)`方法，但某些时候无法获取到正确的类型，这使用你需要在注解里指定字段的类型。
 ```java
-@Column(columnType = java.sql.Timestamp)
+@Column(columnType = java.sql.Timestamp.class)
 private Date regTime;
 ```
