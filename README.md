@@ -28,6 +28,29 @@ String sql = new SqlBuilder(map)
 
 **“那map的值我还是硬编码了呀！”**。通常实体对应的表字段和表名已经提供了工具类获取了，在下面的章节我们会详细讲这部分内容，目前你只需要知道怎么使用变量即可。
 
+###### 分组变量
+分组变量是为了解决有同名变量冲突的问题，为什么会有同名变量呢？通常我们在做连表查询的时候，会用到其他DAO的变量（从`BaseDao`中我们可以得到一个表结构的map映射），所以当两个表有同名字段的时候也就意味着有同名的变量。
+
+```java
+Map<String, String> map1 = new HashMap<>();
+map1.put("tableName", "t_product");
+map1.put("categoryId", "category_id");
+map1.put("name", "name");
+
+Map<String, String> map2 = new HashMap<>();
+map2.put("tableName", "t_product_category");
+map2.put("name", "name");
+map2.put("id", "id");
+
+new SqlBuilder()
+	.addVar(map1)//默认的变量集合
+	.addVar("a", map2)//分组a的变量集合
+	.sql("select p.*, c.@a!name category_name from @tableName p left join @a!tableName c on p.@categoryId = p.@a!id")
+	.toSql();
+```
+
+可以发现有些变量中有一个"!"感叹号，这个感叹号的左边就是分组的key，右边是变量集合的变量名，所以带有"a!"的变量都会从map2中查找，而不会从map1中查找。
+
 ###### 条件查询
 
 ```java
@@ -122,6 +145,16 @@ SqlBuilder sb = createSqlBuilder().sql("select * from @tableName where @username
 ```
 
 上面的代码中，`tableName`是固定为实体的表名变量，其他则跟你在实体中定义的属性有关。
+
+###### 在DAO中使用SqlBuilder做连表查询
+
+```java
+createSqlBuilder()
+	.addVar("a", categoryDao.getPropertiesMapperWithTableName())
+	.sql("select p.*, c.@a!name category_name from @tableName p left join @a!tableName c on p.@categoryId = p.@a!id")
+```
+
+使用其他DAO获取属性到字段的映射作为变量添加到sql构建器中。
 
 ###### ID生成
 `BaseDao`提供了自增id和uuid的实现，你只需要在实体的主键上加上`@Column(idGenerator = IdGenerator.AUTO_INCREMENT)`就可以实现id自增，前提是你的主键是个整数类型，在调用`BaseDao#insert(Object)`方法时，会根据ID生成器类型生成id值，不过目前也就支持自增和uuid而已，第三种就是你自己分配值。
