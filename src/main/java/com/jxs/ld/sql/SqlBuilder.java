@@ -1,5 +1,6 @@
 package com.jxs.ld.sql;
 
+import com.jxs.ld.BaseDao;
 import com.jxs.ld.bean.Beans;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,6 +17,7 @@ public class SqlBuilder {
 
     private StringBuilder builder = new StringBuilder();
     private Map<String, String> mapper = new HashMap<>();
+    private Map<String, Map<String, String>> varMap = new HashMap<>();
     private boolean hasWhere = false;
     private List<Object> values = new LinkedList<>();
     private Comparator<String> stringComparableWithLength = new Comparator<String>() {
@@ -75,6 +77,49 @@ public class SqlBuilder {
             this.mapper.putAll(tmp);
         }
         return this;
+    }
+
+    /**
+     * 添加分组变量。
+     * 场景：
+     * 当做一些连接查询时，需要用到其他表的变量，如果一个个变量添加就比较麻烦，如果使用map的方式添加又
+     * 可能会和现有的发生冲突，为了解决这个冲突就有了分组变量。先看下面这个sql。
+     *
+     * <code>
+     *     select * from @tableName t1 left join @v!tableName t2 on t1.@categoryId = t2.@v!id
+     * </code>
+     *
+     * 第二个tableName的前面有一个"v!"，当在@变量符号中出现!感叹号时，就表示感叹号的左边的字母是一个变量集合
+     * 的key，使用v这个key去查找一个变量集合，然后用tableName这个变量名从这个集合中查找对应的值，这样就不会和
+     * 默认的（第一个）tableName发生冲突了。
+     *
+     * <code>
+     *   Map<String, String> map = ...;
+     *   map.put("tableName", "t_product_category");
+     *   new SqlBuilder()
+     *     .addVar("tableName", "t_product")
+     *     .addVar("v", map)
+     *     .sql(...)
+     * </code>
+     *
+     * @param prefix
+     * @param vars
+     * @return
+     */
+    public SqlBuilder addVar(String prefix, Map<String, String> vars) {
+        this.varMap.put(prefix, vars);
+        return this;
+    }
+
+    /**
+     * @param prefix
+     * @param dao
+     * @param <T>
+     * @return
+     * @see #addVar(String, Map)
+     */
+    public <T> SqlBuilder addVar(String prefix, BaseDao<T> dao) {
+        return this.addVar(prefix, dao.getPropertiesMapper());
     }
 
     /**
@@ -260,7 +305,7 @@ public class SqlBuilder {
      */
     public String toSql() {
         String str = builder.toString();
-        Pattern p = Pattern.compile("(@[a-zA-Z_]+)");
+        Pattern p = Pattern.compile("(@[a-zA-Z_!]+)");
         Matcher m = p.matcher(builder);
         List<String> finds = new LinkedList<>();
         while(m.find()) {
@@ -269,8 +314,21 @@ public class SqlBuilder {
         Collections.sort(finds, stringComparableWithLength);
         for(String group : finds) {
             String prop = group.substring(1);
-            String field = mapper.get(prop);
-            if(field == null) field = prop;
+            String field;
+            if(prop.contains("!")) {
+                String[] tmp = prop.split("!");
+                String prefix = tmp[0];
+                Map<String, String> vars = varMap.get(prefix);
+                if(vars == null) {
+                    throw new RuntimeException("Cannot find var mapper for prefix '" + prefix + "' near " + group);
+                }
+                field = vars.get(tmp[1]);
+            } else {
+                field = mapper.get(prop);
+            }
+            if(field == null) {
+                throw new RuntimeException("Cannot find value by " + group + ", you should use addVar(key, value) to add a var.");
+            };
             str = str.replaceAll(group, field);
         }
         return str.trim();
