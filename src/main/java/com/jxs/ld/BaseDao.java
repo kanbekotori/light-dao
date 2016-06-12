@@ -98,8 +98,32 @@ public abstract class BaseDao<T> {
         return columnsMapper;
     }
 
+    /**
+     * 获取实体属性到表字段的映射集合。
+     * @return
+     */
     public Map<String, String> getPropertiesMapper() {
         return propertiesMapper;
+    }
+
+    /**
+     * @see #getPropertiesMapperWithTableName(String) 默认表变量名称为tableName
+     * @return
+     */
+    public Map<String, String> getPropertiesMapperWithTableName() {
+        return this.getPropertiesMapperWithTableName("tableName");
+    }
+
+    /**
+     * 获取实体属性到表字段的映射集合，并且附加了一个tableName的变量。
+     * @param tableName 表名的变量名称，默认是"tableName"。
+     * @return
+     */
+    public Map<String, String> getPropertiesMapperWithTableName(String tableName) {
+        if(tableName == null || tableName.length() == 0) tableName = "tableName";
+        Map<String, String> tmp = new HashMap<>(this.propertiesMapper);
+        tmp.put(tableName, this.getBeanInfo().getTableName());
+        return tmp;
     }
 
     public String getColumn(String property) {
