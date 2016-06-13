@@ -4,6 +4,7 @@ import com.jxs.ld.bean.BeanInfo;
 import com.jxs.ld.bean.Beans;
 import com.jxs.ld.bean.IdGenerator;
 import com.jxs.ld.sql.SqlBuilder;
+import com.jxs.ld.utils.BeanSetter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +29,6 @@ import java.util.*;
 public abstract class BaseDao<T> {
 
     private static Logger log = Logger.getLogger(BaseDao.class);
-
-    protected interface BeanSetter<T> {
-        void bean(T bean, ResultSet rs, int rowNum) throws SQLException;
-    }
 
     private String SQL_GET_BY_ID;
 
@@ -131,7 +128,7 @@ public abstract class BaseDao<T> {
     }
 
     /**
-     * 创建一个行到实体的转换器，这个转换器默认会将字段填充到实体中，如果你提供了{@link com.jxs.ld.BaseDao.BeanSetter}，
+     * 创建一个行到实体的转换器，这个转换器默认会将字段填充到实体中，如果你提供了{@link com.jxs.ld.utils.BeanSetter}，
      * 那么你可以在它填充完默认的字段后做自己额外的工作，例如填充别名字段。
      * @param setter
      * @return

@@ -6,7 +6,7 @@
 
     <groupId>com.jxs</groupId>
     <artifactId>light-dao</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <build>
         <finalName>light-dao</finalName>
         <plugins>
