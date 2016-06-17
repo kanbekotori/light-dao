@@ -195,7 +195,11 @@ public abstract class BaseDao<T> {
         if(IdGenerator.AUTO_INCREMENT == idg) {
             idValue = insert.executeAndReturnKey(map);
         } else if(IdGenerator.UUID == idg) {
-            idValue = uuid();
+            String uuid = uuid();
+            if(beanInfo.getUuidLength() > uuid.length()) {
+                throw new RuntimeException(bean.getClass().getName() + "的UUIDLength长度溢出（不能超过" + uuid.length() + "位）。");
+            }
+            idValue = uuid.substring(uuid.length() - beanInfo.getUuidLength(), uuid.length());
             map.put(primaryColumn, idValue);
             insert.execute(map);
         } else if(IdGenerator.ASSIGNED == idg) {

@@ -5,6 +5,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.UUID;
 
 /**
  *
@@ -30,4 +31,6 @@ public @interface Column {
     Class<?> columnType() default NullType.class;
 
     IdGenerator idGenerator() default IdGenerator.UUID;
+
+    int UUIDLength() default 32;
 }
