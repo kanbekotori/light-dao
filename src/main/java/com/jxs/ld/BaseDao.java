@@ -25,7 +25,6 @@ import java.util.*;
 
 /**
  * @author jiangxingshang
- * @date 15/11/23
  */
 public abstract class BaseDao<T> {
 
@@ -42,11 +41,11 @@ public abstract class BaseDao<T> {
     protected RowMapper<T> defaultRowMapper;
     protected Class<T> beanClass;
     /**
-     * 实体的属性->字段映射，key是属性名，value是表字段。
+     * 实体的属性-字段映射，key是属性名，value是表字段。
      */
     protected Map<String, String> propertiesMapper;
     /**
-     * 实体的字段->属性映射，key是表字段，value是属性。
+     * 实体的字段-属性映射，key是表字段，value是属性。
      */
     protected Map<String, String> columnsMapper;
     /**
@@ -362,12 +361,11 @@ public abstract class BaseDao<T> {
     }
 
     /**
-     * 创建一个包含{@link #beanClass}对应关系（属性->字段）和一个表名变量（tableName）的SQL构建器。
+     * 创建一个包含{@link #beanClass}对应关系（属性-字段）和一个表名变量（tableName）的SQL构建器。
      * 这个构建器里已经有了{@linkplain #propertiesMapper}和{@linkplain #beanInfo}的表名的变量。
      * @param propertiesMapper 提供给{@link SqlBuilder}的变量。
      * @return
      * @see #propertiesMapper
-     * @see {@linkplain BeanInfo#getTableName()}
      */
     public SqlBuilder createSqlBuilder(Map<String, String>...propertiesMapper) {
         return new SqlBuilder(this.propertiesMapper)

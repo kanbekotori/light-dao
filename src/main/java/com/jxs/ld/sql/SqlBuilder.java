@@ -11,22 +11,6 @@ import java.util.regex.Pattern;
 /**
  * SQL语句的构建工具，多用于查询语句的构建，目的为解决硬编码sql的字段表名与条件查询。
  *
- * <h5>基本的使用：</h5>
- * <pre>
- *     new SqlBuilder().sql("select * from").table(Entity.class);
- * </pre>
- *
- * <h5>查询</h5>
- * <pre>
- *     String name = ...;
- *     new SqlBuilder()
- *       .sql("select * from").table(Entity.class)
- *       .where("@name = ?", name != null && name.length > 0, name)
- *       .toSql();
- * </pre>
- * SQL语句中带有"@"符号的表示一个变量名，会替换对应的值，所以你需要通过{@link #addVar(String, String)}等类似的方法来添加变量。
- * 通常SQL构建工具多和{@link BaseDao}配合使用，因为你可以从里面得到实体的属性和字段的映射关系，将其作为变量添加到构建工具中。
- *
  * @author jiangxingshang
  * @see BaseDao
  */
@@ -113,7 +97,7 @@ public class SqlBuilder {
      * 默认的（第一个）tableName发生冲突了。
      *
      * <code>
-     *   Map<String, String> map = ...;
+     *   Map&lt;String, String&gt; map = ...;
      *   map.put("tableName", "t_product_category");
      *   new SqlBuilder()
      *     .addVar("tableName", "t_product")
