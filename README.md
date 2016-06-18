@@ -69,6 +69,17 @@ List<Object> params = sql.getValues();
 
 以上代码帮你解决了if语句和处理sql的拼接等麻烦的问题。
 
+###### 命名式参数
+
+```java
+SqlBuilder sb = new SqlBuilder(map)
+	.sql("select * from @tableName")
+	.where("@age > :age", age != null, age)
+	.and("@sex = :sex", "m".equals(sex) || "f".equals(sex), sex);
+Map<String, Object> params = sb.getValueMap();
+//使用namedJdbc来处理
+```
+
 ###### 表名
 ```java
 new SqlBuilder().addVar("tableName", "t_user").sql("select * from @tableName");
