@@ -6,10 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 当实体属性的值为Null时就分配一个默认值。
- * @see {@link Beans#initDefaultValue(Object)}
+ * 为实体属性设置默认值，通过调用{@link Beans#initDefaultValue(Object)}方法可初始化实体实例的默认值。
+ *
  * @author jiangxingshang
- * @date 15/11/18
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})

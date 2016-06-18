@@ -9,9 +9,26 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * SQL语句的构建工具，多用于查询语句的构建，目的为解决硬编码sql的字段表名与条件查询。
+ *
+ * <h5>基本的使用：</h5>
+ * <pre>
+ *     new SqlBuilder().sql("select * from").table(Entity.class);
+ * </pre>
+ *
+ * <h5>查询</h5>
+ * <pre>
+ *     String name = ...;
+ *     new SqlBuilder()
+ *       .sql("select * from").table(Entity.class)
+ *       .where("@name = ?", name != null && name.length > 0, name)
+ *       .toSql();
+ * </pre>
+ * SQL语句中带有"@"符号的表示一个变量名，会替换对应的值，所以你需要通过{@link #addVar(String, String)}等类似的方法来添加变量。
+ * 通常SQL构建工具多和{@link BaseDao}配合使用，因为你可以从里面得到实体的属性和字段的映射关系，将其作为变量添加到构建工具中。
  *
  * @author jiangxingshang
- * @date 15/11/18
+ * @see BaseDao
  */
 public class SqlBuilder {
 
@@ -20,6 +37,8 @@ public class SqlBuilder {
     private Map<String, Map<String, String>> varMap = new HashMap<>();
     private boolean hasWhere = false;
     private List<Object> values = new LinkedList<>();
+    private Map<String, Object> namedParams = new HashMap<>();
+    private Pattern namedPattern = Pattern.compile(":(\\S+)");
     private Comparator<String> stringComparableWithLength = new Comparator<String>() {
         @Override
         public int compare(String o1, String o2) {
@@ -187,7 +206,7 @@ public class SqlBuilder {
      */
     public SqlBuilder where(String text, boolean use, Object...values) {
         if(use) {
-            value(values);
+            value(text, values);
             return appendCondition("where", text);
         } else {
             return this;
@@ -204,7 +223,7 @@ public class SqlBuilder {
      */
     public SqlBuilder and(String text, boolean use, Object...values) {
         if(use) {
-            value(values);
+            value(text, values);
             return appendCondition("and", text);
         } else {
             return this;
@@ -221,7 +240,7 @@ public class SqlBuilder {
      */
     public SqlBuilder or(String text, boolean use, Object...values) {
         if(use) {
-            value(values);
+            value(text, values);
             return appendCondition("or", text);
         } else {
             return this;
@@ -280,8 +299,30 @@ public class SqlBuilder {
         return this;
     }
 
+    public SqlBuilder value(String name, Object value) {
+        namedParams.put(name, value);
+        return this;
+    }
+
+    private SqlBuilder value(String sqlText, Object...values) {
+        Matcher m = namedPattern.matcher(sqlText);
+        int i = 0;
+        while(m.find()) {
+            String var = m.group(1);
+            try {
+                namedParams.put(var, values[i++]);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                throw new RuntimeException("参数个数与sql语句中的命名变量不匹配。", e);
+            }
+        }
+        if(i == 0) {
+            value(values);
+        }
+        return this;
+    }
+
     /**
-     * <p>Getter for the field <code>values</code>.</p>
+     * <p>Getter for the field <code>value</code>.</p>
      *
      * @return a {@link java.util.List} object.
      */
@@ -296,6 +337,10 @@ public class SqlBuilder {
      */
     public Object[] getValueArray() {
         return this.values.toArray();
+    }
+
+    public Map<String, Object> getValueMap() {
+        return this.namedParams;
     }
 
     /**

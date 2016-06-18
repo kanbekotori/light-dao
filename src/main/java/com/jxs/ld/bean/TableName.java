@@ -6,8 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 定义实体类型对应的表名。
+ *
  * @author jiangxingshang
- * @date 15/11/18
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

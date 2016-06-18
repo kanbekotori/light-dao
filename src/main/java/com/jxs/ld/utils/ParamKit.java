@@ -13,7 +13,6 @@ import java.util.*;
 /**
  * 键值参数工具类。
  * @author jiangxingshang
- * @date 15/11/28
  */
 public class ParamKit {
 
@@ -100,6 +99,10 @@ public class ParamKit {
 
     public String asStr(String name) {
         return asStr(name, "");
+    }
+
+    public String asStr(String name, String prefix, String suffix) {
+        return prefix + asStr(name) + suffix;
     }
 
     /**

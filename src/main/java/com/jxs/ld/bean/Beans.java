@@ -14,8 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * 操作实体的工具类。
+ *
  * @author jiangxingshang
- * @date 15/11/18
  */
 public class Beans {
 
@@ -23,6 +24,11 @@ public class Beans {
         boolean filter(Field field);
     }
 
+    /**
+     * @param beanClass 实体类型。
+     * @param filter 过滤器，返回false会忽略当前属性。
+     * @return 返回实体类的所有定义属性（包括父类的）。
+     */
     private static List<Field> getFields(Class<?> beanClass, FieldFilter filter) {
         List<Field> fields = new LinkedList<>();
         Class<?> superClass = beanClass.getSuperclass();
@@ -42,14 +48,13 @@ public class Beans {
     }
 
     /**
-     * 获取bean类的属性（包含父类定义的属性），返回的列表只包含有效属性（拥有对应的getter方法）。
-     * @param beanClass
+     * @param beanClass 实体类型。
+     * @return 实体类型的所有（有对应getter）属性，如果某个属性没有对应的getter则会被忽略。
      */
-    private static List<Field> getFields(Class<?> beanClass) {
+    public static List<Field> getFields(Class<?> beanClass) {
         return getFields(beanClass, new FieldFilter() {
             @Override
             public boolean filter(Field field) {
-                if (field.getAnnotation(IgnoreColumn.class) != null) return false;
                 if (getMethod(field, true) != null) {
                     return true;
                 }
@@ -59,8 +64,11 @@ public class Beans {
     }
 
     /**
-     * 获取属性对应的表字段名，属性或getter方法上需放置{@link Column}注解，否则会返回null。
-     * @param f
+     * 使用实体属性获取对应的表字段，默认的，属性名采用驼峰命名方式，字段名采用"_"分隔符，
+     * 如果命名方式不正确，则无法正确的将属性名转换成字段名，你也可以显示的在属性上设置字段
+     * 名，这样就不会自动转换。
+     * @param f 实体属性。
+     * @return 属性对应的表字段名。
      */
     private static String getColumnName(Field f) {
         String property = f.getName();
@@ -84,9 +92,10 @@ public class Beans {
     }
 
     /**
-     * 根据属性获取getter或setter
-     * @param f
-     * @param gs true表示getter，false表示setter
+     * @param f 实体属性。
+     * @param gs true表示获取getter方法，false表示获取setter方法。
+     * @param parameterTypes 属性对应getter或setter的参数类型。
+     * @return 属性对应的getter或setter。
      */
     private static Method getMethod(Field f, boolean gs, Class<?>... parameterTypes) {
         String property = f.getName();
@@ -127,8 +136,9 @@ public class Beans {
     }
 
     /**
-     * 获取主键属性。
+     * 从实体类型中获取主键的属性。
      * @param beanClass
+     * @return
      */
     public static Field getPrimaryField(Class<?> beanClass) {
         for(Field f : getFields(beanClass)) {
@@ -141,9 +151,9 @@ public class Beans {
     }
 
     /**
-     * 获取bean的属性字段映射，属性上必须有{@link Column}注解或对应的getter方法才会被添加到映射集中。
-     * @param beanClass bean类。
-     * @return key是bean的属性名，value是表字段名。
+     * 将实体属性和表字段做映射，key是属性名，value是字段名。
+     * @param beanClass 实体类型。
+     * @return 实体类型的属性与表字段的集合。
      */
     public static Map<String, String> getMapper(Class<?> beanClass) {
         Map<String, String> map = new HashMap<>();
@@ -154,8 +164,9 @@ public class Beans {
     }
 
     /**
-     * 将key和value的位置对调。
+     * 将map的key和value对换位置。
      * @param map
+     * @return
      */
     public static Map<String, String> reverse(Map<String, String> map) {
         Map<String, String> r = new HashMap<>(map.size());
@@ -167,8 +178,8 @@ public class Beans {
     }
 
     /**
-     * 获取bean定义的表名，bean必须设置了{@linkplain com.jxs.ld.bean.TableName}注解。
      * @param beanClass
+     * @return 实体对应的表名。
      */
     public static String getTable(Class<?> beanClass) {
         TableName tn = beanClass.getAnnotation(TableName.class);
@@ -180,19 +191,15 @@ public class Beans {
     }
 
     /**
-     * 获取bean定义的主键表字段名称。
+     * 获取实体类型中设置为主键的对应的字段名。
      * @param beanClass
-     * @see #getPrimaryColumn(Field)
+     * @return 主键字段。
      */
     public static String getPrimaryColumn(Class<?> beanClass) {
         Field f = getPrimaryField(beanClass);
         return getPrimaryColumn(f);
     }
 
-    /**
-     * 获取这个属性对应的字段
-     * @param primary
-     */
     public static String getPrimaryColumn(Field primary) {
         if (primary != null) {
             Column col = primary.getAnnotation(Column.class);
@@ -204,10 +211,11 @@ public class Beans {
     }
 
     /**
-     * 返回一个map，key是属性对应的表字段名，value是属性的值（通过getter获得）。
-     * @param bean
-     * @param includePrimaryKey true表示返回的map包含了主键，false表示不包含。
-     * @param <E>
+     * 获取实体对应的表字段与属性值的映射，用于sql的插入或更新操作。
+     * @param bean 实体对象。
+     * @param includePrimaryKey true表示将主键添加到映射中，false则忽略主键。
+     * @param <E> 实体类型。
+     * @return 字段与值的映射集合。
      */
     public static <E> Map<String, Object> getValueMap(E bean, boolean includePrimaryKey) {
         String primaryKey = getPrimaryColumn(bean.getClass());
@@ -236,12 +244,6 @@ public class Beans {
         }
     }
 
-    /**
-     * 调用bean的setter来设置值。
-     * @param bean
-     * @param prop
-     * @param data
-     */
     public static void set(Object bean, Field prop, Object data) {
         try {
             Method m = getMethod(prop, false, prop.getType());
@@ -255,11 +257,6 @@ public class Beans {
         }
     }
 
-    /**
-     * 获取属性对应的字段的类型。
-     * @param beanClass
-     * @param property
-     */
     public static Class<?> getColumnType(Class<?> beanClass, String property) {
         Field f = getField(beanClass, property);
         if(f == null) return null;
@@ -269,9 +266,9 @@ public class Beans {
     }
 
     /**
-     * 初始化实体的空值，如果该属性的值为空，则分配一个默认值，属性必须加上{@link DefaultValue}注解。
-     * 注：你的属性必须提供getter和setter。
-     * @param bean
+     * 初始化实体设置的默认值。
+     * @param bean 实体实例。
+     * @see DefaultValue
      */
     public static void initDefaultValue(final Object bean) {
         getFields(bean.getClass(), new FieldFilter() {

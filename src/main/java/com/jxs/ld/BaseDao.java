@@ -3,6 +3,7 @@ package com.jxs.ld;
 import com.jxs.ld.bean.BeanInfo;
 import com.jxs.ld.bean.Beans;
 import com.jxs.ld.bean.IdGenerator;
+import com.jxs.ld.bean.IgnoreColumnType;
 import com.jxs.ld.sql.SqlBuilder;
 import com.jxs.ld.utils.BeanSetter;
 import org.apache.commons.lang3.StringUtils;
@@ -56,13 +57,14 @@ public abstract class BaseDao<T> {
 
     protected BaseDao(final Class<T> beanClass) {
         this.beanClass = beanClass;
-        propertiesMapper = Beans.getMapper(beanClass);
+        beanInfo = new BeanInfo(beanClass);
+        propertiesMapper = beanInfo.getPropertiesMapper();
         columnTypes = new HashMap<>();
         for(String prop : propertiesMapper.keySet()) {
             columnTypes.put(prop, Beans.getColumnType(beanClass, prop));
         }
         columnsMapper = Beans.reverse(propertiesMapper);
-        beanInfo = new BeanInfo(beanClass);
+
         defaultRowMapper = createRowMapper(null);
         SQL_GET_BY_ID = String.format("select * from %s where %s = ?", beanInfo.getTableName(), beanInfo.getPrimaryColumn());
 
@@ -124,7 +126,7 @@ public abstract class BaseDao<T> {
     }
 
     public String getColumn(String property) {
-        return propertiesMapper.get(property);
+        return beanInfo.getColumn(property);
     }
 
     /**
@@ -145,6 +147,7 @@ public abstract class BaseDao<T> {
                     throw new SQLException(beanClass.getName() + " new fail", e);
                 }
                 for(Map.Entry<String, String> entry : columnsMapper.entrySet()) {
+                    if(beanInfo.isIgnore(entry.getValue(), IgnoreColumnType.QUERY)) continue;
                     try {
                         rs.findColumn(entry.getKey());
                     } catch(SQLException e) {
@@ -191,6 +194,13 @@ public abstract class BaseDao<T> {
         IdGenerator idg = beanInfo.getIdGenerator();
         String primaryColumn = beanInfo.getPrimaryColumn();
         Map<String, Object> map = Beans.getValueMap(bean, idg == IdGenerator.ASSIGNED);
+        Map<String, Object> tmp = new HashMap<>();
+        for(String col : map.keySet()) {
+            if(!beanInfo.isIgnore(columnsMapper.get(col), IgnoreColumnType.INSERT)) {
+                tmp.put(col, map.get(col));
+            }
+        }
+        map = tmp;
         Object idValue = null;
         if(IdGenerator.AUTO_INCREMENT == idg) {
             idValue = insert.executeAndReturnKey(map);
@@ -227,6 +237,13 @@ public abstract class BaseDao<T> {
             }
         }
         Map<String, Object> map = Beans.getValueMap(bean, true);
+        Map<String, Object> tmp = new HashMap<>();
+        for(String col : map.keySet()) {
+            if(!beanInfo.isIgnore(columnsMapper.get(col), IgnoreColumnType.UPDATE)) {
+                tmp.put(col, map.get(col));
+            }
+        }
+        map = tmp;
         Object id = map.get(beanInfo.getPrimaryColumn());
         if(id == null) throw new RuntimeException("Id must not be null.");
         map.remove(beanInfo.getPrimaryColumn());

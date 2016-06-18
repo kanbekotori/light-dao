@@ -5,7 +5,6 @@ import java.util.Map;
 
 /**
  * @author jiangxingshang
- * @date 15/11/28
  */
 public interface Page<T> {
 
