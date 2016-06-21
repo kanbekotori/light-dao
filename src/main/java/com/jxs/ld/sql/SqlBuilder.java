@@ -22,7 +22,7 @@ public class SqlBuilder {
     private boolean hasWhere = false;
     private List<Object> values = new LinkedList<>();
     private Map<String, Object> namedParams = new HashMap<>();
-    private Pattern namedPattern = Pattern.compile(":(\\S+)");
+    private Pattern namedPattern = Pattern.compile(":([a-zA-Z_]+)");
     private Comparator<String> stringComparableWithLength = new Comparator<String>() {
         @Override
         public int compare(String o1, String o2) {
@@ -190,11 +190,15 @@ public class SqlBuilder {
      */
     public SqlBuilder where(String text, boolean use, Object...values) {
         if(use) {
-            value(text, values);
+            value(null, values);
             return appendCondition("where", text);
         } else {
             return this;
         }
+    }
+
+    public SqlBuilder where(String text) {
+        return where(text, true);
     }
 
     /**
@@ -207,11 +211,15 @@ public class SqlBuilder {
      */
     public SqlBuilder and(String text, boolean use, Object...values) {
         if(use) {
-            value(text, values);
+            value(null, values);
             return appendCondition("and", text);
         } else {
             return this;
         }
+    }
+
+    public SqlBuilder and(String text) {
+        return and(text, true);
     }
 
     /**
@@ -224,11 +232,15 @@ public class SqlBuilder {
      */
     public SqlBuilder or(String text, boolean use, Object...values) {
         if(use) {
-            value(text, values);
+            value(null, values);
             return appendCondition("or", text);
         } else {
             return this;
         }
+    }
+
+    public SqlBuilder or(String text) {
+        return or(text, true);
     }
 
     private SqlBuilder appendCondition(String prefix, String text) {
@@ -289,6 +301,10 @@ public class SqlBuilder {
     }
 
     private SqlBuilder value(String sqlText, Object...values) {
+        if(sqlText == null) {
+            value(values);
+            return this;
+        }
         Matcher m = namedPattern.matcher(sqlText);
         int i = 0;
         while(m.find()) {
@@ -298,9 +314,6 @@ public class SqlBuilder {
             } catch (ArrayIndexOutOfBoundsException e) {
                 throw new RuntimeException("参数个数与sql语句中的命名变量不匹配。", e);
             }
-        }
-        if(i == 0) {
-            value(values);
         }
         return this;
     }
