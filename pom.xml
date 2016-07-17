@@ -8,7 +8,7 @@
 
     <groupId>com.jxs</groupId>
     <artifactId>light-dao</artifactId>
-    <version>1.2</version>
+    <version>1.2.2</version>
     <url>https://github.com/kanbekotori/light-dao</url>
     <description>轻量级DAO工具。</description>
     <licenses>
