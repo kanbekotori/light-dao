@@ -1,6 +1,7 @@
 package com.jxs.ld.sql;
 
 import com.jxs.ld.BaseDao;
+import com.jxs.ld.bean.BeanInfo;
 import com.jxs.ld.bean.Beans;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,6 +20,7 @@ public class SqlBuilder {
     private StringBuilder builder = new StringBuilder();
     private Map<String, String> mapper = new HashMap<>();
     private Map<String, Map<String, String>> varMap = new HashMap<>();
+    private Map<String, BeanInfo> beanInfos = new HashMap<>();
     private boolean hasWhere = false;
     private List<Object> values = new LinkedList<>();
     private Map<String, Object> namedParams = new HashMap<>();
@@ -123,6 +125,24 @@ public class SqlBuilder {
      */
     public <T> SqlBuilder addVar(String prefix, BaseDao<T> dao) {
         return this.addVar(prefix, dao.getPropertiesMapper());
+    }
+
+    /**
+     * 设置bean信息，可以在sql中编写这样的代码：
+     *
+     * new SqlBuilder()
+     *   .addBeanInfo("bean", ...)
+     *   .sql("select * from $bean where $bean.name = ?");
+     *
+     * 以$符号开头表示访问bean的内容，"."符号后面的表示属性名。
+     *
+     * @param name
+     * @param info
+     * @return
+     */
+    public SqlBuilder addBeanInfo(String name, BeanInfo info) {
+        beanInfos.put(name, info);
+        return this;
     }
 
     /**
@@ -312,7 +332,7 @@ public class SqlBuilder {
             try {
                 namedParams.put(var, values[i++]);
             } catch (ArrayIndexOutOfBoundsException e) {
-                throw new RuntimeException("参数个数与sql语句中的命名变量不匹配。", e);
+                throw new SQLBuildException("参数个数与sql语句中的命名变量不匹配。", e);
             }
         }
         return this;
@@ -353,26 +373,48 @@ public class SqlBuilder {
         while(m.find()) {
             finds.add(m.group());
         }
+        p = Pattern.compile("(\\$[a-zA-Z\\.]+)");
+        m = p.matcher(str);
+        while(m.find()) {
+            finds.add(m.group());
+        }
         Collections.sort(finds, stringComparableWithLength);
         for(String group : finds) {
             String prop = group.substring(1);
             String field;
-            if(prop.contains("!")) {
-                String[] tmp = prop.split("!");
-                String prefix = tmp[0];
-                Map<String, String> vars = varMap.get(prefix);
-                if(vars == null) {
-                    throw new RuntimeException("Cannot find var mapper for prefix '" + prefix + "' near " + group);
+            if(group.startsWith("$")) {
+                //实体信息处理
+                if(prop.contains(".")) {
+                    String[] tmp = prop.split("\\.");
+                    BeanInfo info = beanInfos.get(tmp[0]);
+                    if(info == null) throw new SQLBuildException("Cannot find bean info with prefix [" + tmp[0] + "]");
+                    field = info.getColumn(tmp[1]);
+                } else {
+                    BeanInfo info = beanInfos.get(prop);
+                    if(info == null) throw new SQLBuildException("Cannot find bean info with prefix [" + prop + "]");
+                    field = info.getTableName();
                 }
-                field = vars.get(tmp[1]);
             } else {
-                field = mapper.get(prop);
+                //变量处理
+                if(prop.contains("!")) {
+                    String[] tmp = prop.split("!");
+                    String prefix = tmp[0];
+                    Map<String, String> vars = varMap.get(prefix);
+                    if(vars == null) {
+                        throw new SQLBuildException("Cannot find var mapper for prefix '" + prefix + "' near " + group);
+                    }
+                    field = vars.get(tmp[1]);
+                } else {
+                    field = mapper.get(prop);
+                }
+                if(field == null) {
+                    throw new SQLBuildException("Cannot find value by " + group + ", you should use addVar(key, value) to add a var.");
+                }
             }
-            if(field == null) {
-                throw new RuntimeException("Cannot find value by " + group + ", you should use addVar(key, value) to add a var.");
-            };
-            str = str.replaceAll(group, field);
+            str = StringUtils.replace(str, group, field);
         }
+
+
         return str.trim();
     }
 
