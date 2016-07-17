@@ -1,9 +1,9 @@
 light-dao是一个轻量的DAO层辅助框架，主要用于构建中小型项目，解决DAO层对数据库的处理。
 
-### SQL构建工具
+# SQL构建工具
 你可以使用`SqlBuilder`来辅助你构建sql语句，它能帮你解决数据库表结构的硬编码和条件组装查询问题。
 
-###### 基本用法
+## 基本用法
 
 ```java
 String sql = new SqlBuilder().sql("select * from t_user").toSql();
@@ -11,7 +11,7 @@ String sql = new SqlBuilder().sql("select * from t_user").toSql();
 
 这看起来没什么意义，如果你想构建这么个sql那么你确实没必要使用`SqlBuilder`。
 
-###### 变量
+## 变量
 如果你不想在sql语句中硬编码表名或字段等信息，你可以像下面这样使用。
 
 ```java
@@ -28,7 +28,7 @@ String sql = new SqlBuilder(map)
 
 **“那map的值我还是硬编码了呀！”**。通常实体对应的表字段和表名已经提供了工具类获取了，在下面的章节我们会详细讲这部分内容，目前你只需要知道怎么使用变量即可。
 
-###### 分组变量
+## 分组变量
 分组变量是为了解决有同名变量冲突的问题，为什么会有同名变量呢？通常我们在做连表查询的时候，会用到其他DAO的变量（从`BaseDao`中我们可以得到一个表结构的map映射），所以当两个表有同名字段的时候也就意味着有同名的变量。
 
 ```java
@@ -51,7 +51,7 @@ new SqlBuilder()
 
 可以发现有些变量中有一个"!"感叹号，这个感叹号的左边就是分组的key，右边是变量集合的变量名，所以带有"a!"的变量都会从map2中查找，而不会从map1中查找。
 
-###### 条件查询
+## 条件查询
 
 ```java
 Map<String, String> map = ...;
@@ -69,7 +69,7 @@ List<Object> params = sql.getValues();
 
 以上代码帮你解决了if语句和处理sql的拼接等麻烦的问题。
 
-###### 命名式参数
+## 命名式参数
 
 ```java
 SqlBuilder sb = new SqlBuilder(map)
@@ -80,7 +80,7 @@ Map<String, Object> params = sb.getValueMap();
 //使用namedJdbc来处理
 ```
 
-###### 表名
+## 表名
 ```java
 new SqlBuilder().addVar("tableName", "t_user").sql("select * from @tableName");
 ```
@@ -100,7 +100,7 @@ new SqlBuilder().sql("select * from").table(User.class);
 
 第三种的方式你的`User`必须要添加一个`@TableName`注解。
 
-###### 排序
+## 排序
 ```java
 SqlBuilder sb = ...;
 sb.order("@age", "-@birthday");
@@ -108,7 +108,7 @@ sb.order("@age", "-@birthday");
 
 上面的排序的意思是按照年龄升序然后降序出生日期，未带"-"号的表示升序，带有"-"号的表示降序。
 
-###### 分页查询
+## 分页查询
 `SqlBuilder`目前只支持mysql的分页查询。
 
 ```java
@@ -116,7 +116,18 @@ String sql = new SqlBuilder().sql(...).toSql(10, 20);
 //select * from (select * from xxx) limit 10, 20
 ```
 
-### DAO
+## 在sql中直接访问实体信息
+在**分组变量**中提到如何简化变量的设置问题，但在sql中使用分组变量会导致sql阅读困难，使用"$"符号可以解决这个问题，看例子：
+
+```java
+new SqlBuilder()
+	.addBeanInfo("e", this.getBeanInfo())
+	.sql("select * from $e where $e.username = ? and $e.password = ?")
+```
+
+"$"符号和"."符号之间的字符表示实体变量，"."符号后面的表示属性名，如果你单单使用`$e`则表示表名。
+
+## DAO
 你只需要继承`BaseDao`就可以为你实现基础的CRUD。
 
 ```java
@@ -148,7 +159,7 @@ RowMapper<User> mapper = super.createRowMapper(new BeanSetter<User>() {
 super.query(sql, mapper);
 ```
 
-###### 在DAO中使用SqlBuilder
+### 在DAO中使用SqlBuilder
 当在DAO中写sql时，我建议你使用`createSqlBuilder()`来获取一个sql构建器，这个构建器已经具备了实体的属性变量和表名变量。
 
 ```java
@@ -157,7 +168,7 @@ SqlBuilder sb = createSqlBuilder().sql("select * from @tableName where @username
 
 上面的代码中，`tableName`是固定为实体的表名变量，其他则跟你在实体中定义的属性有关。
 
-###### 在DAO中使用SqlBuilder做连表查询
+### 在DAO中使用SqlBuilder做连表查询
 
 ```java
 createSqlBuilder()
@@ -167,7 +178,7 @@ createSqlBuilder()
 
 使用其他DAO获取属性到字段的映射作为变量添加到sql构建器中。
 
-###### ID生成
+### ID生成
 `BaseDao`提供了自增id和uuid的实现，你只需要在实体的主键上加上`@Column(idGenerator = IdGenerator.AUTO_INCREMENT)`就可以实现id自增，前提是你的主键是个整数类型，在调用`BaseDao#insert(Object)`方法时，会根据ID生成器类型生成id值，不过目前也就支持自增和uuid而已，第三种就是你自己分配值。
 
 ### 实体（Entity）
