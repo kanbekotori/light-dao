@@ -127,6 +127,14 @@ new SqlBuilder()
 
 "$"符号和"."符号之间的字符表示实体变量，"."符号后面的表示属性名，如果你单单使用`$e`则表示表名。
 
+通过设置`SqlBuilder#autoAppendTableAlias(true)`可以自动增加表别名（从版本1.2.3开始加入），如：
+```
+//假如有t_book和t_user表：
+select * from @tableName b left join $u on $u.id = b.@userId;
+//将翻译成如下：
+select * from t_book b left join t_user u on u.id = b.user_id;
+```
+
 ## DAO
 你只需要继承`BaseDao`就可以为你实现基础的CRUD。
 

@@ -21,6 +21,7 @@ public class SqlBuilder {
     private Map<String, String> mapper = new HashMap<>();
     private Map<String, Map<String, String>> varMap = new HashMap<>();
     private Map<String, BeanInfo> beanInfos = new HashMap<>();
+    private boolean autoAppendTableAlias = false;
     private boolean hasWhere = false;
     private List<Object> values = new LinkedList<>();
     private Map<String, Object> namedParams = new HashMap<>();
@@ -53,6 +54,21 @@ public class SqlBuilder {
         for(Map.Entry<String, String> entry : mapper.entrySet()) {
             this.mapper.put(entry.getKey(), entry.getValue());
         }
+    }
+
+    /**
+     * 当使用$前缀语法时，是否自动附加表别名。
+     * 假如有t_book和t_user表：
+     * select * from @tableName b left join $u on $u.id = b.@userId;
+     * 将翻译成如下：
+     * select * from t_book b left join t_user u on u.id = b.user_id;
+     *
+     * @param flag
+     * @return
+     */
+    public SqlBuilder autoAppendTableAlias(boolean flag) {
+        this.autoAppendTableAlias = flag;
+        return this;
     }
 
     /**
@@ -388,11 +404,19 @@ public class SqlBuilder {
                     String[] tmp = prop.split("\\.");
                     BeanInfo info = beanInfos.get(tmp[0]);
                     if(info == null) throw new SQLBuildException("Cannot find bean info with prefix [" + tmp[0] + "]");
-                    field = info.getColumn(tmp[1]);
+                    if(autoAppendTableAlias) {
+                        field = tmp[0] + "." + info.getColumn(tmp[1]);
+                    } else {
+                        field = info.getColumn(tmp[1]);
+                    }
                 } else {
                     BeanInfo info = beanInfos.get(prop);
                     if(info == null) throw new SQLBuildException("Cannot find bean info with prefix [" + prop + "]");
-                    field = info.getTableName();
+                    if(autoAppendTableAlias) {
+                        field = info.getTableName() + " as " + prop;
+                    } else {
+                        field = info.getTableName();
+                    }
                 }
             } else {
                 //变量处理
