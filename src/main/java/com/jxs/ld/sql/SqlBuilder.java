@@ -413,7 +413,7 @@ public class SqlBuilder {
                     BeanInfo info = beanInfos.get(prop);
                     if(info == null) throw new SQLBuildException("Cannot find bean info with prefix [" + prop + "]");
                     if(autoAppendTableAlias) {
-                        field = info.getTableName() + " as " + prop;
+                        field = info.getTableName() + " " + prop;
                     } else {
                         field = info.getTableName();
                     }

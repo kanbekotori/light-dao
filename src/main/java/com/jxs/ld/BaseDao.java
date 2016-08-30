@@ -6,6 +6,7 @@ import com.jxs.ld.bean.IdGenerator;
 import com.jxs.ld.bean.IgnoreColumnType;
 import com.jxs.ld.sql.SqlBuilder;
 import com.jxs.ld.utils.BeanSetter;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,7 +158,23 @@ public abstract class BaseDao<T> {
                     if(type == null) {
                         value = rs.getObject(entry.getKey());
                     } else {
-                        value = rs.getObject(entry.getKey(), type);
+                        if(ClassUtils.isAssignable(type, Number.class)) {
+                            if(type == Integer.class) {
+                                value = rs.getInt(entry.getKey());
+                            } else if(type == Long.class) {
+                                value = rs.getLong(entry.getKey());
+                            } else if(type == Float.class) {
+                                value = rs.getFloat(entry.getKey());
+                            } else if(type == Double.class) {
+                                value = rs.getDouble(entry.getKey());
+                            } else {
+                                throw new RuntimeException("unsupport number type for " + type.getName());
+                            }
+                        } else if(type == String.class) {
+                            value = rs.getString(entry.getKey());
+                        } else {
+                            value = rs.getObject(entry.getKey(), type);
+                        }
                     }
                     if(value == null) continue;
                     Beans.set(bean, Beans.getField(beanClass, entry.getValue()), value);
