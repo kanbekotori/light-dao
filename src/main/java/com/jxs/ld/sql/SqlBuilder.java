@@ -226,7 +226,7 @@ public class SqlBuilder {
      */
     public SqlBuilder where(String text, boolean use, Object...values) {
         if(use) {
-            value(null, values);
+            value(text, values);
             return appendCondition("where", text);
         } else {
             return this;
@@ -247,7 +247,7 @@ public class SqlBuilder {
      */
     public SqlBuilder and(String text, boolean use, Object...values) {
         if(use) {
-            value(null, values);
+            value(text, values);
             return appendCondition("and", text);
         } else {
             return this;
@@ -268,7 +268,7 @@ public class SqlBuilder {
      */
     public SqlBuilder or(String text, boolean use, Object...values) {
         if(use) {
-            value(null, values);
+            value(text, values);
             return appendCondition("or", text);
         } else {
             return this;
@@ -337,10 +337,6 @@ public class SqlBuilder {
     }
 
     private SqlBuilder value(String sqlText, Object...values) {
-        if(sqlText == null) {
-            value(values);
-            return this;
-        }
         Matcher m = namedPattern.matcher(sqlText);
         int i = 0;
         while(m.find()) {
@@ -350,6 +346,9 @@ public class SqlBuilder {
             } catch (ArrayIndexOutOfBoundsException e) {
                 throw new SQLBuildException("参数个数与sql语句中的命名变量不匹配。", e);
             }
+        }
+        if(i == 0) {
+            value(values);
         }
         return this;
     }
