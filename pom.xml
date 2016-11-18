@@ -8,8 +8,8 @@
 
     <groupId>com.jxs</groupId>
     <artifactId>light-dao</artifactId>
-    <version>1.2.5</version>
-    <url>https://github.com/kanbekotori/light-dao</url>
+    <version>1.2.6</version>
+    <url>https://git.oschina.net/xsjiang/light-dao</url>
     <description>轻量级DAO工具。</description>
     <licenses>
         <license>
@@ -18,15 +18,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <scm>
-        <connection>
-            scm:git:git://github.com/kanbekotori/light-dao.git
-        </connection>
-        <url>https://github.com/kanbekotori/light-dao</url>
-        <developerConnection>
-            scm:git:git://github.com/kanbekotori/light-dao.git
-        </developerConnection>
-    </scm>
     <build>
         <finalName>light-dao</finalName>
         <plugins>

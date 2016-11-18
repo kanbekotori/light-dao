@@ -6,10 +6,7 @@ import javax.lang.model.type.NullType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -227,7 +224,13 @@ public class Beans {
             Method m = getMethod(f, true);
             if(m != null) {
                 try {
-                    map.put(columnName, m.invoke(bean));
+                    Object value = m.invoke(bean);
+                    if(value instanceof java.util.Date) {
+                        value = new java.sql.Date(((java.util.Date)value).getTime());
+                    } else if(value instanceof Calendar) {
+                        value = new java.sql.Date(((Calendar)value).getTime().getTime());
+                    }
+                    map.put(columnName, value);
                 } catch (IllegalAccessException | InvocationTargetException  e) {
                 }
             }

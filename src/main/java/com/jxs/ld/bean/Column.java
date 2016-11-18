@@ -14,6 +14,10 @@ public @interface Column {
 
     boolean primaryKey() default false;
 
+    /**
+     * 从{@link java.sql.ResultSet}中取出数据时应使用的类型。
+     * @return
+     */
     Class<?> columnType() default NullType.class;
 
     IdGenerator idGenerator() default IdGenerator.UUID;
