@@ -225,10 +225,14 @@ public class Beans {
             if(m != null) {
                 try {
                     Object value = m.invoke(bean);
-                    if(value instanceof java.util.Date) {
-                        value = new java.sql.Date(((java.util.Date)value).getTime());
-                    } else if(value instanceof Calendar) {
-                        value = new java.sql.Date(((Calendar)value).getTime().getTime());
+                    if(value instanceof java.sql.Date || value instanceof java.sql.Timestamp || value instanceof java.sql.Time) {
+
+                    } else {
+                        if(value instanceof java.util.Date) {
+                            value = new java.sql.Timestamp(((java.util.Date)value).getTime());
+                        } else if(value instanceof Calendar) {
+                            value = new java.sql.Timestamp(((Calendar)value).getTime().getTime());
+                        }
                     }
                     map.put(columnName, value);
                 } catch (IllegalAccessException | InvocationTargetException  e) {
