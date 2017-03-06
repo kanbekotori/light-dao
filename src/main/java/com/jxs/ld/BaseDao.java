@@ -158,22 +158,9 @@ public abstract class BaseDao<T> {
                     if(type == null) {
                         value = rs.getObject(entry.getKey());
                     } else {
-                        if(ClassUtils.isAssignable(type, Number.class)) {
-                            if(type == Integer.class) {
-                                value = rs.getInt(entry.getKey());
-                            } else if(type == Long.class) {
-                                value = rs.getLong(entry.getKey());
-                            } else if(type == Float.class) {
-                                value = rs.getFloat(entry.getKey());
-                            } else if(type == Double.class) {
-                                value = rs.getDouble(entry.getKey());
-                            } else {
-                                throw new RuntimeException("unsupport number type for " + type.getName());
-                            }
-                        } else if(type == String.class) {
-                            value = rs.getString(entry.getKey());
-                        } else {
-                            value = rs.getObject(entry.getKey(), type);
+                        value = rs.getObject(entry.getKey(), type);
+                        if(rs.wasNull()) {
+                            continue;
                         }
                     }
                     if(value == null) continue;

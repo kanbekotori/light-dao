@@ -8,7 +8,7 @@
 
     <groupId>com.jxs</groupId>
     <artifactId>light-dao</artifactId>
-    <version>1.2.7</version>
+    <version>1.2.8</version>
     <url>https://git.oschina.net/xsjiang/light-dao</url>
     <description>轻量级DAO工具。</description>
     <licenses>
