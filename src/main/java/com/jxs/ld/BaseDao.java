@@ -6,9 +6,7 @@ import com.jxs.ld.bean.IdGenerator;
 import com.jxs.ld.bean.IgnoreColumnType;
 import com.jxs.ld.sql.SqlBuilder;
 import com.jxs.ld.utils.BeanSetter;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,8 +15,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-
-import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,8 +24,6 @@ import java.util.*;
  * @author jiangxingshang
  */
 public abstract class BaseDao<T> {
-
-    private static Logger log = Logger.getLogger(BaseDao.class);
 
     private String SQL_GET_BY_ID;
 
@@ -57,6 +51,10 @@ public abstract class BaseDao<T> {
 
     protected BaseDao(final Class<T> beanClass) {
         this.beanClass = beanClass;
+        this.initModelInfo();
+    }
+
+    protected void initModelInfo() {
         beanInfo = new BeanInfo(beanClass);
         propertiesMapper = beanInfo.getPropertiesMapper();
         columnTypes = new HashMap<>();
@@ -67,14 +65,6 @@ public abstract class BaseDao<T> {
 
         defaultRowMapper = createRowMapper(null);
         SQL_GET_BY_ID = String.format("select * from %s where %s = ?", beanInfo.getTableName(), beanInfo.getPrimaryColumn());
-
-        //debug
-        log.debug("=================== " + beanClass.getSimpleName() + "(" + beanInfo.getTableName() + ") ====================");
-        log.debug("Primary key -> " + beanInfo.getPrimaryColumn());
-        for(Map.Entry<String, String> entry : propertiesMapper.entrySet()) {
-            log.debug(entry.getKey() + " -> " + entry.getValue());
-        }
-        log.debug("=============================================================");
     }
 
     protected RowMapper<T> getRowMapper() {
@@ -175,8 +165,8 @@ public abstract class BaseDao<T> {
     }
 
     @Autowired
-    public void setDataSource(DataSource dataSource) {
-        jdbc = new JdbcTemplate(dataSource);
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        jdbc = jdbcTemplate;
         insert = new SimpleJdbcInsert(jdbc);
         insert.withTableName(beanInfo.getTableName());
         if(beanInfo.getIdGenerator() == IdGenerator.AUTO_INCREMENT) {
@@ -333,13 +323,13 @@ public abstract class BaseDao<T> {
      */
     protected Page<T> query(Page<T> page, MapSqlParameterSource parameters, RowMapper<T> mapper, SqlBuilder sqlBuilder) {
         int total = namedJdbc.queryForObject(sqlBuilder.toSqlCount(), parameters, Integer.class);
-        if(total == 0) {
-            page.setTotal(0);
-            page.setData(new LinkedList<T>());
-        } else {
+        if(total != 0) {
             List<T> list = namedJdbc.query(sqlBuilder.toSql(page.getStart(), page.getLimit()), parameters, mapper);
             page.setTotal(total);
             page.setData(list);
+        } else {
+            page.setTotal(0);
+            page.setData(new LinkedList<T>());
         }
         return page;
     }
@@ -375,5 +365,78 @@ public abstract class BaseDao<T> {
         return new SqlBuilder(this.propertiesMapper)
                 .addVar(propertiesMapper)
                 .addVar("tableName", beanInfo.getTableName());
+    }
+
+    /**
+     * 自动设置{@link SqlBuilder#autoAppendTableAlias(boolean)}为true。
+     * @see #createSqlBuilder(Map[])
+     * @param sql
+     * @return
+     * @since 2.x
+     */
+    protected SqlBuilder sql(String sql) {
+        return createSqlBuilder().autoAppendTableAlias(true).sql(sql);
+    }
+
+    /**
+     * @see #sql(String)
+     * @return
+     * @since 2.x
+     */
+    protected SqlBuilder sql() {
+        return createSqlBuilder().autoAppendTableAlias(true);
+    }
+
+    /**
+     * 根据主键获取某个字段值。
+     * @param id
+     * @param propertyName 属性名（非字段名）
+     * @param propertyType 属性值的类型，如：String.class
+     * @param <P>
+     * @return
+     * @since 2.x
+     */
+    public <P> P getPropertyValue(Object id, String propertyName, Class<P> propertyType) {
+        String col = getColumn(propertyName);
+        String sql = sql("select " + col + " from @tableName where @id = ?").toSql();
+        try {
+            return jdbc.queryForObject(sql, propertyType, id);
+        } catch(EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 根据主键更新某个字段的值。
+     * @param id
+     * @param property 属性名（非字段名）
+     * @param value
+     * @since 2.x
+     */
+    public void update(Object id, String property, Object value) {
+        String column = getColumn(property);
+        BeanInfo i = getBeanInfo();
+        if(column != null) {
+            String sql = String.format("update %s set %s = ? where %s = ?", i.getTableName(), column, i.getPrimaryColumn());
+            jdbc.update(sql, value, id);
+        }
+    }
+
+    /**
+     * 更新数据模型，如果模型的属性值为空，则会更新字段为空。
+     * @param bean
+     * @since 2.x
+     */
+    public void updateIncludeNullData(T bean) {
+        update(bean, true);
+    }
+
+    /**
+     * 查询表的所有记录，谨慎使用。
+     * @return
+     * @since 2.x
+     */
+    public List<T> queryAll() {
+        return query(sql("select * from @tableName").toSql(), getRowMapper());
     }
 }

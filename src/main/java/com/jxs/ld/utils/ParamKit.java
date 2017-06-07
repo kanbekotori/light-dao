@@ -1,12 +1,6 @@
 package com.jxs.ld.utils;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
-
-import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Array;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -20,21 +14,6 @@ public class ParamKit {
 
     public ParamKit(Map<String, String> params) {
         this.params = params;
-    }
-
-    public ParamKit(HttpServletRequest request) {
-        params = new HashMap<>();
-        Map<String, String[]> tmp = request.getParameterMap();
-        if(tmp == null) return;
-        for(Map.Entry<String, String[]> entry : tmp.entrySet()) {
-            String[] value = entry.getValue();
-            if(value == null) continue;
-            if(value.length == 1) {
-                params.put(entry.getKey(), value[0]);
-            } else {
-                params.put(entry.getKey(), StringUtils.join(value, ","));
-            }
-        }
     }
 
     private String val(String name) {
