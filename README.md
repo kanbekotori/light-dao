@@ -126,13 +126,16 @@ new SqlBuilder()
 
 可以发现有些变量中有一个"!"感叹号，这个感叹号的左边就是分组的key，右边是变量集合的变量名，所以带有"a!"的变量都会从map2中查找，而不会从map1中查找。
 
-上面的使用方式已经放弃，从1.4版本开始使用下面的方式，简洁了其他表属性的引用。
+## 连表查询
+上面的使用方式（分组变量）已经放弃，从1.4版本开始使用下面的方式，简洁了其他表属性的引用。
 ```java
 new SqlBuilder()
 	.addBeanInfo("c", categoryDao.getBeanInfo())
 	.autoAppendTableAlias(true)
 	.sql("select p.*, $c.name category_name from @tableName p left join $c on $c.id = p.@categoryId");
 ```
+`$`符号和`.`符号之间的字符表示实体变量，`.`符号后面的表示属性名（非字段名），如果你单单使用`$c`则表示表名。
+`autoAppendTableAlias`方法会自动为`$`产生表别名，这可以避免与其他表有同名属性时产生的sql错误。
 
 ## 条件查询
 
@@ -198,18 +201,6 @@ sb.order("@age", "-@birthday");
 String sql = new SqlBuilder().sql(...).toSql(10, 20);
 //select * from (select * from xxx) limit 10, 20
 ```
-
-## 在sql中直接访问实体信息
-在**分组变量**中提到如何简化变量的设置问题，但在sql中使用分组变量会导致sql阅读困难，使用"$"符号可以解决这个问题，看例子：
-
-```java
-new SqlBuilder()
-	.addBeanInfo("e", this.getBeanInfo())
-	.autoAppendTableAlias(true)
-	.sql("select * from $e where $e.username = ? and $e.password = ?")
-```
-
-"$"符号和"."符号之间的字符表示实体变量，"."符号后面的表示属性名，如果你单单使用`$e`则表示表名。
 
 ## DAO
 你只需要继承`BaseDao`就可以为你实现基础的CRUD，在`BaseDao`中使用了`@Autowire`注入一个`javax.sql.DataSource`，所以在你的应用中需要有一个数据源实现。
