@@ -388,7 +388,7 @@ public class SqlBuilder {
         while(m.find()) {
             finds.add(m.group());
         }
-        p = Pattern.compile("(\\$[a-zA-Z\\.]+)");
+        p = Pattern.compile("(\\$[a-zA-Z\\\\*\\\\.]+)");
         m = p.matcher(str);
         while(m.find()) {
             finds.add(m.group());
@@ -400,13 +400,12 @@ public class SqlBuilder {
             if(group.startsWith("$")) {
                 //实体信息处理
                 if(prop.contains(".")) {
-                    String[] tmp = prop.split("\\.");
+                    String[] tmp = StringUtils.split(prop, ".");
                     BeanInfo info = beanInfos.get(tmp[0]);
                     if(info == null) throw new SQLBuildException("Cannot find bean info with prefix [" + tmp[0] + "]");
+                    field = "*".equals(tmp[1]) ? "*" : info.getColumn(tmp[1]);
                     if(autoAppendTableAlias) {
-                        field = tmp[0] + "." + info.getColumn(tmp[1]);
-                    } else {
-                        field = info.getColumn(tmp[1]);
+                        field = tmp[0] + "." + field;
                     }
                 } else {
                     BeanInfo info = beanInfos.get(prop);
