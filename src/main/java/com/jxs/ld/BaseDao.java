@@ -67,7 +67,7 @@ public abstract class BaseDao<T> {
         SQL_GET_BY_ID = String.format("select * from %s where %s = ?", beanInfo.getTableName(), beanInfo.getPrimaryColumn());
     }
 
-    protected RowMapper<T> getRowMapper() {
+    public RowMapper<T> getRowMapper() {
         return defaultRowMapper;
     }
 
