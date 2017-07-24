@@ -219,19 +219,27 @@ public class Beans {
         List<Field> fields = getFields(bean.getClass());
         Map<String, Object> map = new HashMap<>(fields.size());
         for(Field f : fields) {
+            Class<?> columnType = getColumnType(bean.getClass(), f.getName());
             String columnName = getColumnName(f);
             if(!includePrimaryKey && columnName.equals(primaryKey)) continue;
             Method m = getMethod(f, true);
             if(m != null) {
                 try {
                     Object value = m.invoke(bean);
-                    if(value instanceof java.sql.Date || value instanceof java.sql.Timestamp || value instanceof java.sql.Time) {
 
-                    } else {
+                    //日期类型处理
+                    if(value instanceof java.util.Date || value instanceof Calendar) {
+                        long time;
                         if(value instanceof java.util.Date) {
-                            value = new java.sql.Timestamp(((java.util.Date)value).getTime());
-                        } else if(value instanceof Calendar) {
-                            value = new java.sql.Timestamp(((Calendar)value).getTime().getTime());
+                            time = ((java.util.Date)value).getTime();
+                        } else {
+                            time = ((Calendar)value).getTimeInMillis();
+                        }
+
+                        if(columnType == java.sql.Date.class) {
+                            value = new java.sql.Date(time);
+                        } else if(columnType == java.sql.Timestamp.class) {
+                            value = new java.sql.Timestamp(time);
                         }
                     }
                     map.put(columnName, value);
