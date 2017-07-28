@@ -1,5 +1,7 @@
 package com.jxs.ld.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -134,10 +136,12 @@ public class ParamKit {
      * @param sper
      * @param <T>
      */
+    @SuppressWarnings("unchecked")
     public <T> Set<T> asSet(String name, Class<T> cls, String sper) {
         String tmp = asStr(name);
-        String[] arr = tmp.split(sper);
         Set<T> set = new HashSet<>();
+        String[] arr = StringUtils.split(tmp, sper);
+        if(arr == null || arr.length == 0) return set;
         if(cls == String.class) {
             for(int i = 0; i < arr.length; i++) {
                 set.add((T)arr[i]);
@@ -145,6 +149,10 @@ public class ParamKit {
         } else if(cls == Integer.class) {
             for(int i = 0; i < arr.length; i++) {
                 set.add((T) Integer.decode(arr[i]));
+            }
+        } else if(cls == Long.class) {
+            for(int i = 0; i < arr.length; i++) {
+                set.add((T) Long.decode(arr[i]));
             }
         } else if(cls == Float.class) {
             for(int i = 0; i < arr.length; i++) {
