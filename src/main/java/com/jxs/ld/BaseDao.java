@@ -279,7 +279,7 @@ public abstract class BaseDao<T> {
         jdbc.update(String.format("delete from %s where %s=?", beanInfo.getTableName(), beanInfo.getPrimaryColumn()), id);
     }
 
-    protected T getOne(String sql, RowMapper<T> mapper, Object...values) {
+    public T getOne(String sql, RowMapper<T> mapper, Object...values) {
         try {
             return jdbc.queryForObject(sql, mapper, values);
         } catch(EmptyResultDataAccessException e) {
@@ -287,7 +287,7 @@ public abstract class BaseDao<T> {
         }
     }
 
-    protected int getCount(String sql, Object...values) {
+    public int getCount(String sql, Object...values) {
         return jdbc.queryForObject(sql, values, Integer.class);
     }
 
@@ -299,7 +299,7 @@ public abstract class BaseDao<T> {
      * @param values 查询参数。
      * @return
      */
-    protected Page<T> query(Page<T> page, RowMapper<T> mapper, SqlBuilder sqlBuilder, Object...values) {
+    public Page<T> query(Page<T> page, RowMapper<T> mapper, SqlBuilder sqlBuilder, Object...values) {
         int total = getCount(sqlBuilder.toSqlCount(), values);
         if(total == 0) {
             page.setTotal(0);
@@ -321,7 +321,7 @@ public abstract class BaseDao<T> {
      * @return
      * @see #query(Page, RowMapper, SqlBuilder, Object...)
      */
-    protected Page<T> query(Page<T> page, MapSqlParameterSource parameters, RowMapper<T> mapper, SqlBuilder sqlBuilder) {
+    public Page<T> query(Page<T> page, MapSqlParameterSource parameters, RowMapper<T> mapper, SqlBuilder sqlBuilder) {
         int total = namedJdbc.queryForObject(sqlBuilder.toSqlCount(), parameters, Integer.class);
         if(total != 0) {
             List<T> list = namedJdbc.query(sqlBuilder.toSql(page.getStart(), page.getLimit()), parameters, mapper);
@@ -334,7 +334,7 @@ public abstract class BaseDao<T> {
         return page;
     }
 
-    protected List<T> query(String sql, RowMapper<T> mapper, Object...values) {
+    public List<T> query(String sql, RowMapper<T> mapper, Object...values) {
         return jdbc.query(sql ,mapper, values);
     }
 
@@ -346,7 +346,7 @@ public abstract class BaseDao<T> {
      * @param values
      * @return
      */
-    protected List<T> query(int max, String sql, RowMapper<T> mapper, Object...values) {
+    public List<T> query(int max, String sql, RowMapper<T> mapper, Object...values) {
         return jdbc.query(new SqlBuilder().sql(sql).toSql(0, max), mapper, values);
     }
 
@@ -374,7 +374,7 @@ public abstract class BaseDao<T> {
      * @return
      * @since 2.x
      */
-    protected SqlBuilder sql(String sql) {
+    public SqlBuilder sql(String sql) {
         return createSqlBuilder().autoAppendTableAlias(true).sql(sql);
     }
 
@@ -383,7 +383,7 @@ public abstract class BaseDao<T> {
      * @return
      * @since 2.x
      */
-    protected SqlBuilder sql() {
+    public SqlBuilder sql() {
         return createSqlBuilder().autoAppendTableAlias(true);
     }
 
