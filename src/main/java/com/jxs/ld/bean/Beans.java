@@ -28,18 +28,20 @@ public class Beans {
      */
     private static List<Field> getFields(Class<?> beanClass, FieldFilter filter) {
         List<Field> fields = new LinkedList<>();
-        Class<?> superClass = beanClass.getSuperclass();
-        if(superClass != Object.class) {
-            fields.addAll(getFields(superClass));
-        }
-        for(Field f : beanClass.getDeclaredFields()) {
-            if(filter != null) {
-                if(filter.filter(f)) {
-                    fields.add(f);
+
+        while(beanClass != Object.class) {
+            if(beanClass.getAnnotation(TableName.class) != null) {
+                for(Field f : beanClass.getDeclaredFields()) {
+                    if(filter != null) {
+                        if(filter.filter(f)) {
+                            fields.add(f);
+                        }
+                    } else {
+                        fields.add(f);
+                    }
                 }
-            } else {
-                fields.add(f);
             }
+            beanClass = beanClass.getSuperclass();
         }
         return fields;
     }
@@ -100,20 +102,26 @@ public class Beans {
         Class<?> boolType = fieldType.isPrimitive() ? boolean.class : Boolean.class;
         String prefix = gs ? (fieldType == boolType ? "is" : "get") : "set";
         String getter = prefix + property.substring(0, 1).toUpperCase() + property.substring(1);
-        try {
-            return f.getDeclaringClass().getMethod(getter, parameterTypes);
-        } catch (NoSuchMethodException e) {
-            if(gs && f.getType() == Boolean.class) {
-                //boolean类型的getter如果用isXXX没有找到的话再用getXXX尝试找一次
-                getter = "get" + property.substring(0, 1).toUpperCase() + property.substring(1);
-                try {
-                    return f.getDeclaringClass().getMethod(getter, parameterTypes);
-                } catch(NoSuchMethodException x) {
+        Class<?> cls = f.getDeclaringClass();
+        while(true) {
+            try {
+                return cls.getMethod(getter, parameterTypes);
+            } catch(NoSuchMethodException e) {
+                cls = cls.getSuperclass();
+                if(cls == Object.class) {
                     return null;
                 }
             }
-            return null;
         }
+//            if(gs && f.getType() == Boolean.class) {
+//                //boolean类型的getter如果用isXXX没有找到的话再用getXXX尝试找一次
+//                getter = "get" + property.substring(0, 1).toUpperCase() + property.substring(1);
+//                try {
+//                    return f.getDeclaringClass().getMethod(getter, parameterTypes);
+//                } catch(NoSuchMethodException x) {
+//                    return null;
+//                }
+//            }
     }
 
     public static Field getField(Class<?> beanClass, String property) {
