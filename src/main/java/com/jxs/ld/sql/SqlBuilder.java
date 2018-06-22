@@ -457,14 +457,7 @@ public class SqlBuilder {
      * @return a {@link java.lang.String} object.
      */
     public String toSqlCount() {
-        String sql = toSql();
-        Pattern p = Pattern.compile("^select(.*?)from");
-        Matcher m = p.matcher(sql);
-        if(m.find()) {
-            String g = m.group(1);
-            sql = StringUtils.replaceOnce(sql, g, " count(0) ");
-        }
-        return sql;
+        return String.format("select count(0) from (%s) as count_tmp_table", toSql());
     }
 
     /**
