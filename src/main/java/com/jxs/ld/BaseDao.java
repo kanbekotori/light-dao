@@ -15,6 +15,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+
+import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -165,8 +167,8 @@ public abstract class BaseDao<T> {
     }
 
     @Autowired
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-        jdbc = jdbcTemplate;
+    public void setDataSource(DataSource dataSource) {
+        jdbc = new JdbcTemplate(dataSource);
         insert = new SimpleJdbcInsert(jdbc);
         insert.withTableName(beanInfo.getTableName());
         if(beanInfo.getIdGenerator() == IdGenerator.AUTO_INCREMENT) {
