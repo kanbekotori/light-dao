@@ -457,7 +457,7 @@ public class SqlBuilder {
      * @return a {@link java.lang.String} object.
      */
     public String toSqlCount() {
-        return String.format("select count(0) from (%s) as count_tmp_table", toSql());
+        return String.format("select count(0) from (%s) count_tmp_table", toSql());
     }
 
     /**
